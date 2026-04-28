@@ -5,6 +5,10 @@ services:
       NODE_ENV: development
       # Helpful for reliable file watching in containers
       CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      # Ensure source exists even if `watch` isn't running yet
+      - ./src:/app/src
+      - ./tsconfig.json:/app/tsconfig.json
     develop:
       watch:
         # Fast path: live-sync source changes (no rebuild)
