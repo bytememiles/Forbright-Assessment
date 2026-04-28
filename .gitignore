@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+*.log
+
+AVP, Senior Applications Engineer - Coding Exercise.pdf
+JD.md
+
+.cursor/
