@@ -4,8 +4,3 @@ dist
 *.log
 services/*/node_modules
 services/*/dist
-
-AVP, Senior Applications Engineer - Coding Exercise.pdf
-JD.md
-
-.cursor/
