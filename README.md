@@ -48,3 +48,11 @@ docker compose up --build
 ```
 
 The API will be available on `http://localhost:3000`.
+
+## Docker Compose Watch (dev, no rebuild on code changes)
+
+This uses Docker Compose Watch to sync `src/` changes into the running container.
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.watch.yml watch
+```

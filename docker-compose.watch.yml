@@ -1,0 +1,22 @@
+services:
+  api:
+    command: npm run dev
+    environment:
+      NODE_ENV: development
+      # Helpful for reliable file watching in containers
+      CHOKIDAR_USEPOLLING: "true"
+    develop:
+      watch:
+        # Fast path: live-sync source changes (no rebuild)
+        - action: sync
+          path: ./src
+          target: /app/src
+        - action: sync
+          path: ./tsconfig.json
+          target: /app/tsconfig.json
+
+        # If dependencies change, rebuild the image
+        - action: rebuild
+          path: ./package.json
+        - action: rebuild
+          path: ./package-lock.json
