@@ -7,20 +7,41 @@ services:
       CHOKIDAR_USEPOLLING: "true"
     volumes:
       # Ensure source exists even if `watch` isn't running yet
-      - ./src:/app/src
-      - ./tsconfig.json:/app/tsconfig.json
+      - ./services/forwarder/src:/app/src
+      - ./services/forwarder/tsconfig.json:/app/tsconfig.json
     develop:
       watch:
         # Fast path: live-sync source changes (no rebuild)
         - action: sync
-          path: ./src
+          path: ./services/forwarder/src
           target: /app/src
         - action: sync
-          path: ./tsconfig.json
+          path: ./services/forwarder/tsconfig.json
           target: /app/tsconfig.json
 
         # If dependencies change, rebuild the image
         - action: rebuild
-          path: ./package.json
+          path: ./services/forwarder/package.json
+        - action: rebuild
+          path: ./package-lock.json
+
+  ingest:
+    command: npm run dev
+    environment:
+      NODE_ENV: development
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - ./services/ingest/src:/app/src
+      - ./services/ingest/tsconfig.json:/app/tsconfig.json
+    develop:
+      watch:
+        - action: sync
+          path: ./services/ingest/src
+          target: /app/src
+        - action: sync
+          path: ./services/ingest/tsconfig.json
+          target: /app/tsconfig.json
+        - action: rebuild
+          path: ./services/ingest/package.json
         - action: rebuild
           path: ./package-lock.json

@@ -3,11 +3,10 @@ dotenv.config();
 
 import express from "express";
 import pinoHttp from "pino-http";
+
 import { logger } from "./logging/logger";
 import { requestContext, REQUEST_ID_HEADER } from "./middleware/requestContext";
-import { onboardingRouter } from "./routes/onboarding";
-import swaggerUi from "swagger-ui-express";
-import { generateOpenApiDocument } from "./openapi";
+import { ingestRouter } from "./routes/ingest";
 
 export function createApp() {
   const app = express();
@@ -32,27 +31,19 @@ export function createApp() {
     res.status(200).json({ ok: true });
   });
 
-  const openapi = generateOpenApiDocument();
-  app.get("/openapi.json", (_req, res) => {
-    res.status(200).json(openapi);
-  });
-  app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapi));
-
-  app.use(onboardingRouter);
-
+  app.use(ingestRouter);
   return app;
 }
 
 async function main() {
   const app = createApp();
-  const port = Number(process.env.PORT ?? 3000);
+  const port = Number(process.env.PORT ?? 8080);
 
   app.listen(port, () => {
     logger.info(
       {
         port,
-        docsUrl: `http://localhost:${port}/docs`,
-        openapiUrl: `http://localhost:${port}/openapi.json`,
+        healthUrl: `http://localhost:${port}/health`,
         requestIdHeader: REQUEST_ID_HEADER
       },
       "server_listening"

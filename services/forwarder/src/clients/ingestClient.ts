@@ -25,7 +25,7 @@ export async function forwardToIngest(
   payload: OnboardingPayload,
   requestId: string
 ): Promise<IngestResult> {
-  const url = process.env.INGEST_URL ?? getRequiredEnv("INGEST_URL");
+  const url = getRequiredEnv("INGEST_URL");
 
   const resp = await axios.post(url, payload, {
     timeout: getTimeoutMs(),

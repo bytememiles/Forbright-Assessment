@@ -1,16 +1,32 @@
-# Forbright onboarding forwarder
+# Forbright onboarding forwarder + ingestion service
 
-Simple Express + TypeScript app that receives onboarding form events and forwards them to a downstream ingestion endpoint.
+Two-service Express + TypeScript setup:
+- **Forwarder API**: receives onboarding events and forwards them to ingestion.
+- **Ingestion service**: stores raw events + normalized customers in Postgres (via Prisma).
 
-## Quickstart (local, no Docker)
+## Project structure
 
-```bash
-npm install
-cp .env.example .env
-npm run dev
+```text
+services/forwarder/   # POST /onboarding (+ /docs, /openapi.json)
+services/ingest/      # POST /ingest (persists to Postgres via Prisma)
+db/init/              # Postgres init SQL
+sql/                  # SQL answers
 ```
 
-Send a request:
+## Quickstart (Docker)
+
+```bash
+docker compose up --build
+```
+
+### Health checks
+
+```bash
+curl -i http://localhost:3000/health
+curl -i http://localhost:8080/health
+```
+
+### Forwarder path (client → forwarder → ingest)
 
 ```bash
 curl -i -X POST "http://localhost:3000/onboarding" \
@@ -23,17 +39,30 @@ curl -i -X POST "http://localhost:3000/onboarding" \
   }'
 ```
 
+### Direct ingestion (Postman/curl → ingest)
+
+```bash
+curl -i -X POST "http://localhost:8080/ingest" \
+  -H "content-type: application/json" \
+  -H "x-request-id: ingest-direct-1" \
+  -d '{
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "email": "jane.doe@example.com"
+  }'
+```
+
 ## API docs
 
 - Swagger UI: `http://localhost:3000/docs`
 - OpenAPI JSON: `http://localhost:3000/openapi.json`
 
-## Configuration
+## Configuration (Docker)
 
-Copy `.env.example` to `.env` and adjust as needed:
+The Docker setup configures defaults via `docker-compose.yml`. Key env vars:
 
 - `PORT`: server port (default `3000`)
-- `INGEST_URL`: downstream ingest endpoint (default `https://dummy-s3-location.com/ingest`)
+- `INGEST_URL`: ingestion endpoint (default `http://ingest:8080/ingest`)
 - `REQUEST_TIMEOUT_MS`: axios timeout in ms (default `3000`)
 - `LOG_LEVEL`: pino log level (default `info`)
 
@@ -41,17 +70,16 @@ Copy `.env.example` to `.env` and adjust as needed:
 
 See `sql/queries.sql`.
 
-## Docker (API + Postgres)
+## Verify persisted data
 
 ```bash
-docker compose up --build
+docker compose exec db psql -U forbright_app -d forbright_app_db -c "SELECT * FROM onboarding_events ORDER BY received_at DESC LIMIT 5;"
+docker compose exec db psql -U forbright_app -d forbright_app_db -c "SELECT * FROM customers ORDER BY created_at DESC LIMIT 10;"
 ```
-
-The API will be available on `http://localhost:3000`.
 
 ## Docker Compose Watch (dev, no rebuild on code changes)
 
-This uses Docker Compose Watch to sync `src/` changes into the running container.
+This uses Docker Compose Watch to sync source changes into running containers.
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.watch.yml watch

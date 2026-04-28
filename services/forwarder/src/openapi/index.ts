@@ -32,12 +32,8 @@ registry.registerPath({
         }
       }
     },
-    400: {
-      description: "Invalid request body"
-    },
-    502: {
-      description: "Downstream ingest error"
-    }
+    400: { description: "Invalid request body" },
+    502: { description: "Downstream ingest error" }
   }
 });
 
