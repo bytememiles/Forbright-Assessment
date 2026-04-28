@@ -4,6 +4,14 @@ Two-service Express + TypeScript setup:
 - **Forwarder API**: receives onboarding events and forwards them to ingestion.
 - **Ingestion service**: stores raw events + normalized customers in Postgres (via Prisma).
 
+## Why there is an ingestion service (demo purpose)
+
+The original exercise only requires receiving an onboarding event and forwarding it to a downstream endpoint. I added a separate ingestion service to make the demo fully runnable locally (instead of calling a non-existent dummy URL) and to better reflect real integration architecture:
+
+- **Separation of concerns**: forwarder handles intake + forwarding; ingestion owns persistence.
+- **Auditability**: store the raw event (`onboarding_events`) alongside a normalized view (`customers`).
+- **Clarity for reviewers**: you can run the whole flow end-to-end with Docker Compose and verify rows with SQL.
+
 ## Project structure
 
 ```text
@@ -62,7 +70,9 @@ curl -i -X POST "http://localhost:8080/ingest" \
 The Docker setup configures defaults via `docker-compose.yml`. Key env vars:
 
 - `PORT`: server port (default `3000`)
-- `INGEST_URL`: ingestion endpoint (default `http://ingest:8080/ingest`)
+- `INGEST_URL`: ingestion endpoint
+  - from your host: `http://localhost:8080/ingest`
+  - from the `api` container (default): `http://ingest:8080/ingest`
 - `REQUEST_TIMEOUT_MS`: axios timeout in ms (default `3000`)
 - `LOG_LEVEL`: pino log level (default `info`)
 
